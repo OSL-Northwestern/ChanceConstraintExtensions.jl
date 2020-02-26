@@ -1,5 +1,5 @@
 using ChanceConstraintExtensions
-import Ipopt
+# import Ipopt
 using JuMP
 using Test
 
@@ -17,13 +17,14 @@ end
 @testset "Example" begin
     Ω = [-1.0, -0.2, 0.2, 1.0]
     K = length(Ω)
-    model = Model(with_optimizer(Ipopt.Optimizer))
-    set_parameter(model, "print_level", 0)
+    # model = Model(with_optimizer(Ipopt.Optimizer))
+    model = Model()
+    # set_parameter(model, "print_level", 0)
     @variable(model, -2 <= x <= 2, start = 0.4)
-    chance_constraint(
+    @chance_constraint(
         model,
-        @NLexpression(model, [k = 1:K], x^2 - 2 + Ω[k]),
-        probability = 0.3, smoothing = 0.01, bisection_atol=1e-4
+        P(x^2 + ω <= 2, ω = Ω) >= 0.7,
+        bisection_atol=1e-4
     )
     @objective(model, Max, x)
     optimize!(model)
